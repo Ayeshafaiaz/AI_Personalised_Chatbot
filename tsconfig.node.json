@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.path.json",
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "paths": {
+      "@pages/*": ["./src/pages/*"],
+      "@assets": ["./src/assets/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["vite.config.ts"]
+}
