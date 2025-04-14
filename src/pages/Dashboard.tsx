@@ -1,35 +1,63 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle } from "lucide-react";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import MenIllustration from "@/assets/menIllustration.svg";
 import FemaleIllustration from "@/assets/womenIllustration.svg";
 import SittingIllustration from "@/assets/sittingIllustration.svg";
 import MeditationIllustration from "@/assets/medidationIllustration.svg";
 import WalkingIllustration from "@/assets/walkingIllustration.svg";
 import { SideBar } from "./SideBar";
+import { useUserStore } from "@/stores/userStore";
+import axios from "axios";
+
+interface Goal  {
+  id: number;
+  text: string;
+  completed: boolean;
+}
 
 export const Dashboard = (): JSX.Element => {
+  const user = useUserStore((store)=>store.user)
   // Data for goals
-  const [goals, setGoals] = useState([
-    { id: 1, text: "Try a 5-minute guided meditation", completed: true },
-    { id: 2, text: "Do a 3-minute deep breathing session", completed: true },
-    {
-      id: 3,
-      text: "Identify 1 positive thing that happened today",
-      completed: false,
-    },
-    {
-      id: 4,
-      text: "Close your eyes & take 10 slow, mindful breaths",
-      completed: false,
-    },
-    {
-      id: 5,
-      text: "Do the 4-7-8 breathing technique (Inhale 4s, hold 7s, exhale 8s)",
-      completed: false,
-    },
-  ]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [todayMood, setTodayMood] = useState<string>("HAPPY");
+  const getGoals = async () => {
+    const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/dashboard/goals/${user?.id}`);
+    if (response?.data) {
+      setGoals(response?.data.map((goal: any) => ({
+        id: goal.id,
+        text: goal.title,
+        completed: goal.status === "completed",
+      })));
+    }
+  };
+  const getMood = async () => {
+    const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/dashboard/moods/${user?.id}`);
+    if (response?.data) {
+        setTodayMood(response?.data?.mood);
+    }
+  };
+
+  const updateGoals = async (goalId:number) => {
+    const response = await axios.put(`${import.meta.env.VITE_APP_API_URL}/dashboard/goals/${goalId}`,{
+        "status": "completed"
+    });
+    if (response?.data) {
+      setGoals((prevGoals) =>
+        prevGoals.map((goal) =>
+          goal.id ===goalId 
+            ? { ...goal, completed: !goal.completed }
+            : goal
+        )
+      );
+    }
+  };
+
+  useEffect(()=>{
+    getGoals()
+    getMood()
+  },[])
 
   // Data for mood board
   const days = [
@@ -70,7 +98,7 @@ export const Dashboard = (): JSX.Element => {
         <div className="absolute w-[1056px] h-[228px] top-[114px] left-[222px] bg-[#efeff8] rounded-[27px] overflow-hidden">
           <div className="flex flex-col w-[300px] items-center justify-center gap-[13px] absolute top-[68px] left-[370px]">
             <div className="relative self-stretch mt-[-1.00px] font-normal text-black text-2xl text-center tracking-[0] leading-normal">
-              Welcome &lt;name&gt;
+              Welcome {user?.name}
             </div>
             <div className="relative self-stretch font-normal text-black text-base text-center tracking-[0] leading-normal">
               Hi&nbsp;&nbsp;this is your personalized AI therapist
@@ -130,27 +158,13 @@ export const Dashboard = (): JSX.Element => {
                     {goal.completed ? (
                       <CheckCircle
                         className="w-7 h-[23px] text-green-500 cursor-pointer"
-                        onClick={() => {
-                          setGoals((prevGoals) =>
-                            prevGoals.map((goal, index) =>
-                              index === i
-                                ? { ...goal, completed: !goal.completed }
-                                : goal
-                            )
-                          );
-                        }}
+                      
                       />
                     ) : (
                       <Circle
                         className="w-7 h-[25px] text-gray-300 cursor-pointer"
                         onClick={() => {
-                          setGoals((prevGoals) =>
-                            prevGoals.map((goal, index) =>
-                              index === i
-                                ? { ...goal, completed: !goal.completed }
-                                : goal
-                            )
-                          );
+                          updateGoals(goal.id)
                         }}
                       />
                     )}
@@ -265,7 +279,7 @@ export const Dashboard = (): JSX.Element => {
           <CardContent className="pt-4 px-[34px]">
             <Progress value={60} className="h-4 bg-[#efeff8]" />
             <div className="mt-4 text-base font-normal text-[#5f5c8b]">
-              Todays mood : Sad
+              Todays mood : {todayMood.charAt(0).toUpperCase() + todayMood.slice(1).toLowerCase()}
             </div>
           </CardContent>
         </Card>

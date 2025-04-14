@@ -6,11 +6,32 @@ import { FormSelect } from "../components/FormSelect";
 import { GENDER } from "../constants";
 import { FormCalendar } from "../components/FormCalendar";
 import { Button } from "../components/ui/button";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export const Signup = (): JSX.Element => {
+  const navigate = useNavigate()
   const form = useForm({
     mode: "onBlur",
   });
+
+  const {getValues} = form
+
+  const signup = async () => {
+    const values = getValues()
+      const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/users/register`,{
+       name: values.name,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+        dob: new Date(values.dob).toISOString().split("T")[0],
+        gender: values.gender,
+        emergency_contact: values.emergencyNumber,
+      });
+      if(response.status === 200)
+        navigate("/login")
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden">
       <img
@@ -66,11 +87,20 @@ export const Signup = (): JSX.Element => {
                   placeholder="Select Date of Birth"
                 />
               </div>
+              <div className="col-span-6">
+                <FormInput
+                  name="emergencyNumber"
+                  label="Emergency Number"
+                  placeholder="Enter Emegency Number"
+                  type="tel"
+                />
+              </div>
               <div className="col-span-12 flex items-center justify-center">
                 <div className="w-[50%]">
                   <Button
                     className="w-full bg-transparent text-black !rounded-full !h-14 !font-normal !text-[24px] border border-solid !border-[#2f2e41] "
                     variant="outline"
+                    onClick={signup}
                   >
                     Signup
                   </Button>

@@ -9,16 +9,24 @@ import { FormCalendar } from "@/components/FormCalendar";
 import { FormSelect } from "@/components/FormSelect";
 import { GENDER } from "@/constants";
 import FemaleAvatar from "@/assets/femaleAvatar.png";
+import MaleAvatar from "@/assets/maleAvatar.svg";
 import FormSwitch from "@/components/FormSwitch";
+import { useUserStore } from "@/stores/userStore";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const Profile = (): JSX.Element => {
+  const navigate = useNavigate()
+  const userStore= useUserStore((state) => state);
+  const user = userStore.user
   const form = useForm({
     mode: "onBlur",
     defaultValues: {
-      email: "Kierra05@gmail.com",
-      mobile: "1234567890",
-      gender: "FEMALE",
-      dob: "2000-01-01",
+      email: user?.email,
+      mobile: user?.phone,
+      gender: user?.gender,
+      dob: user?.dob,
+      emergencyNumber: user?.emergency_contact,
       panicButton: true,
     },
   });
@@ -31,7 +39,8 @@ export const Profile = (): JSX.Element => {
       type: "text",
     },
     { label: "Mobile Number", name: "mobile", type: "text" },
-    { label: "Gender", name: "gander", type: "select" },
+    { label: "Emergency Number", name: "emergencyNumber", type: "text" },
+    { label: "Gender", name: "gender", type: "select" },
     { label: "Date of Birth", name: "dob", type: "date" },
   ];
 
@@ -44,6 +53,15 @@ export const Profile = (): JSX.Element => {
       "Snehi – Call +91 9582208181",
     ],
   };
+
+  const panic = async () => {
+    const response = await axios.post(`${import.meta.env.VITE_APP_API_URL}/users/send_alert/${user?.id}`);
+    if(response.status === 200){
+      alert("Panic Button Pressed")
+    } else {
+      alert("Error in pressing panic button")
+    }
+  }
 
   return (
     <div className="bg-[#efeff8] flex flex-row justify-center w-full min-h-screen">
@@ -64,13 +82,13 @@ export const Profile = (): JSX.Element => {
                 <div className="w-[204px] h-[204px] bg-[#a1a0c2] rounded-[102px] flex items-center justify-center">
                   <Avatar className="w-[204px] h-[204px] p-10">
                     <AvatarImage
-                      src={FemaleAvatar}
+                      src={user?.gender === "FEMALE"? FemaleAvatar:MaleAvatar}
                       alt="Profile"
                       width={100}
                       height={120}
                     />
                     <AvatarFallback className="bg-[#a1a0c2] text-white text-4xl">
-                      K
+                      {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -85,7 +103,7 @@ export const Profile = (): JSX.Element => {
                 {/* User Name */}
                 <div className="flex flex-col items-center mt-[106px] mb-12">
                   <h1 className="font-bold text-[32px] text-black [font-family:'Inter-Bold',Helvetica]">
-                    Kierra
+                    {user?.name}
                   </h1>
                 </div>
 
@@ -174,7 +192,10 @@ export const Profile = (): JSX.Element => {
                               <span className="text-base font-normal text-black [font-family:'Inter-Regular',Helvetica]">
                                 Instant Support for Urgent Moments
                               </span>
-                              <FormSwitch name="panicButton" />
+                              {/* <FormSwitch name="panicButton" /> */}
+                              <Button className="rounded-full" onClick={panic}>
+                                Panic
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -193,7 +214,10 @@ export const Profile = (): JSX.Element => {
                       <Button
                         variant="outline"
                         className="w-[296px] h-[60px] px-[26px] py-[21px] bg-white rounded-[26px] border-2 border-solid border-[#efeff8] text-base font-normal text-black"
-                      >
+                            onClick={() => {
+                              userStore.reset()
+                              navigate("/login")
+                            }}                      >
                         Sign Out
                       </Button>
                       <Button

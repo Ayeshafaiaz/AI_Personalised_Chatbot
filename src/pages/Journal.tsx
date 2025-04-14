@@ -2,73 +2,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ChevronRight, Plus } from "lucide-react";
 import { SideBar } from "./SideBar";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useUserStore } from "@/stores/userStore";
 
-// Journal entry data for mapping
-const journalEntries = [
-  {
-    id: 1,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 2,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 3,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 4,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 5,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 6,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 5,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 6,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 5,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-  {
-    id: 6,
-    title: "Norem ipsum dolor",
-    content:
-      "Morem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Curabitur tempus urna at turpis condimentum lobortis.Morem ipsum dolor sit amet, consectetur adipiscing elit.",
-  },
-];
+export type Journal = {
+  id: number;
+  title: string;
+  content: string;
+  mood:string
+
+}
 
 export const Journal = () => {
   const navigate = useNavigate();
+  const userId= useUserStore  ((state) => state?.user?.id)
+  const [entries, setEntries] = useState<Journal[]>([]);
+  const getJournals = async () => {
+    const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/journal?user_id=${userId}`);
+    console.log(response);
+    if (response?.data) {
+      setEntries(response?.data);
+    }
+  };
+  useEffect(() => {
+    getJournals();
+  }
+  , []);
   return (
     <div className="bg-[#efeff8] flex flex-row justify-center w-full min-h-screen">
       <div className="bg-[#efeff8] w-full min-h-screen relative overflow-hidden">
@@ -94,10 +54,10 @@ export const Journal = () => {
         {/* Main content - Journal entries grid */}
         <main className="pl-[253px] pr-[253px] flex flex-col gap-11 overflow-auto pb-10">
           {/* Grid of journal entries - 3 rows of 2 columns */}
-          {Array.from({ length: Math.ceil(journalEntries.length / 2) }).map(
+          {Array.from({ length: Math.ceil(entries.length / 2) }).map(
             (_, rowIndex) => (
               <div key={rowIndex} className="flex items-center gap-11">
-                {journalEntries
+                {entries
                   .slice(rowIndex * 2, rowIndex * 2 + 2)
                   .map((entry) => (
                     <Card
